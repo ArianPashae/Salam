@@ -136,7 +136,7 @@ async function main() {
 
   const oauth = await api("POST", "/integrations/github/oauth", token);
   const state = /state=([0-9a-f]+)/.exec(oauth.json?.url ?? "")?.[1];
-  check("GitHub sign in link is made", oauth.res.status === 200 && /client_id=gh-client/.test(oauth.json.url) && !!state, oauth.json);
+  check("GitHub sign in link is made", oauth.res.status === 200 && /client_id=gh-client/.test(oauth.json.url) && !!state, oauth.res.status);
   await api("DELETE", "/integrations/github", token);
   const back = await fetch(`${API}/integrations/github/callback?code=abc&state=${state}`, { redirect: "manual" });
   check("the callback sends the browser back", back.status === 302 && /connected=github&result=ok/.test(back.headers.get("location") ?? ""), back.headers.get("location"));
