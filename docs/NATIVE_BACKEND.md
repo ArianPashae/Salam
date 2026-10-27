@@ -117,9 +117,9 @@ frames there as on x86, and gdb uses the tables instead of guessing from the
 prologues.
 
 What is not there yet: the loop and SLP vectorizers are off on AArch64, and
-in release builds an integer
-division by zero returns 0 instead of trapping, as ARM hardware does (debug
-builds check explicitly, as on every target).
+in release builds an integer division by zero returns 0 instead of trapping,
+as ARM hardware does (debug builds check explicitly, as on every target).
+RISC-V hardware returns -1 the same way.
 
 ## 32-bit x86
 
@@ -781,13 +781,11 @@ Not there yet:
 - `-g` writes DWARF only; there is no CodeView/PDB for MSVC tools, 32-bit
   Windows objects get no debug sections, and macOS objects get neither
   DWARF nor unwind tables.
-- The built-in linker has no range-extension thunks: an ARM to Thumb `B`
-  needs a veneer and fails, and an AArch64 or ARM64 PE branch beyond
-  ±128 MB fails.
 - The 64-bit atomic helpers the armhf backend writes into the object have no
   `.ARM.exidx` entry, so an unwind that starts inside one stops there.
-- On AArch64, an integer division by zero in a release build returns 0
-  instead of trapping. Debug builds check.
+- Release builds do not check integer division by zero, and only x86 and
+  armhf trap in hardware or libgcc. On AArch64 the result is 0 and on
+  RISC-V it is -1. Debug builds check on every target.
 - The loop and SLP vectorizers run on x86 only (SLP also on i686).
 - The loop vectorizer needs a single-block loop body with unit-stride
   accesses, and SSE2 limits it: no 64-bit integer compares, no integer
