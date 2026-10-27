@@ -778,9 +778,8 @@ faster than the LLVM path.
 
 Not there yet:
 
-- `-g` writes DWARF only; there is no CodeView/PDB for MSVC tools, 32-bit
-  Windows objects get no debug sections, and macOS objects get neither
-  DWARF nor unwind tables.
+- `-g` writes DWARF only; there is no CodeView/PDB for MSVC tools, and
+  32-bit Windows objects get no debug sections.
 - Release builds do not check integer division by zero, and only x86 and
   armhf trap in hardware or libgcc. On AArch64 the result is 0 and on
   RISC-V it is -1. Debug builds check on every target.
