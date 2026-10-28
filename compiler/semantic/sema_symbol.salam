@@ -32,9 +32,11 @@ end
 
 func scope_lookup_local(s &: Sema, sc: int, name: str): int:
     scv := s.scopes.ref(sc)
+    c0 := ((name as void*) as u8*)[0]
     repeat scv.symbols.len() in i:
         id := scv.symbols.get(i)
-        if str.Equals(s.syms.ref(id).name, name):
+        nm := s.syms.ref(id).name
+        if ((nm as void*) as u8*)[0] == c0 and str.Equals(nm, name):
             ret id
         end
     end
