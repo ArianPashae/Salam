@@ -374,6 +374,11 @@ pub struct Sema:
     pub own_idx: HashMap<int, int> = HashMap {} as HashMap<int, int>
     pub sum_fresh: Vector<bool> = Vector {}
     pub sum_off: Vector<int> = Vector {}
+    pub su_pm: Vector<HashMap<int, int>> = Vector {}
+    pub su_pm_ok: Vector<bool> = Vector {}
+    pub su_rstart: Vector<int> = Vector {}
+    pub su_rlen: Vector<int> = Vector {}
+    pub su_rflat: Vector<int> = Vector {}
     pub sum_np: Vector<int> = Vector {}
     pub sp_keep: Vector<bool> = Vector {}
     pub sp_free: Vector<bool> = Vector {}

@@ -598,22 +598,61 @@ func su_grow_field(s &: Sema, a &: at.Ast, pm &: HashMap<int, int>, r: int): str
     ret "*"
 end
 
+func su_pm_for(s &: Sema, a &: at.Ast, fi: int, body: int): HashMap<int, int>:
+    if s.su_pm_ok.get(fi):
+        ret s.su_pm.get(fi)
+    end
+    mut pm := HashMap {} as HashMap<int, int>
+    su_par_build(a, body, 0, pm)
+    s.su_pm.set(fi, pm)
+    s.su_pm_ok.set(fi, true)
+    ret pm
+end
+
+func su_refs_for(s &: Sema, a &: at.Ast, gi: int, body: int, name: str):
+    if s.su_rstart.get(gi) >= 0:
+        ret
+    end
+    mut refs := Vector {} as Vector<int>
+    su_collect_refs(a, body, name, refs)
+    s.su_rstart.set(gi, s.su_rflat.len())
+    s.su_rlen.set(gi, refs.len())
+    repeat refs.len() in k:
+        s.su_rflat.push(refs.get(k))
+    end
+    refs.free()
+end
+
+func su_cache_reset(s &: Sema):
+    repeat s.su_pm.len() in i:
+        if s.su_pm_ok.get(i):
+            mut m := s.su_pm.get(i)
+            m.free()
+        end
+    end
+    s.su_pm.clear()
+    s.su_pm_ok.clear()
+    s.su_rstart.clear()
+    s.su_rlen.clear()
+    s.su_rflat.clear()
+end
+
 func su_analyze(s &: Sema, a &: at.Ast, fi: int): bool:
     fnid := s.own_fns.get(fi)
     body := at.At(a, fnid).a
     mut changed := false
-    mut pm := HashMap {} as HashMap<int, int>
-    su_par_build(a, body, 0, pm)
+    pm := su_pm_for(s, a, fi, body)
     np := su_np(s, fi)
     repeat np in slot:
         mut name := "this"
         if slot > 0:
             name = at.At(a, at.Child(a, fnid, slot - 1)).name
         end
-        mut refs := Vector {} as Vector<int>
-        su_collect_refs(a, body, name, refs)
-        repeat refs.len() in j:
-            r := refs.get(j)
+        rgi := s.sum_off.get(fi) + slot
+        su_refs_for(s, a, rgi, body, name)
+        rbase := s.su_rstart.get(rgi)
+        repeat s.su_rlen.get(rgi) in j:
+            r := s.su_rflat.get(rbase + j)
             mut c := su_classify(s, a, pm, r)
             if su_in_lambda(a, pm, r):
                 c = SU_KEEP
@@ -648,7 +687,6 @@ func su_analyze(s &: Sema, a &: at.Ast, fi: int): bool:
                 end
             end
         end
-        refs.free()
     end
     if s.sum_fresh.get(fi):
         mut rets := Vector {} as Vector<int>
@@ -667,7 +705,6 @@ func su_analyze(s &: Sema, a &: at.Ast, fi: int): bool:
             changed = true
         end
     end
-    pm.free()
     ret changed
 end
 
@@ -813,6 +850,15 @@ func su_infer(s &: Sema, a &: at.Ast):
     repeat s.own_fns.len() in ai:
         su_alias(s, a, ai)
     end
+    su_cache_reset(s)
+    repeat s.own_fns.len():
+        s.su_pm.push(HashMap {} as HashMap<int, int>)
+        s.su_pm_ok.push(false)
+    end
+    repeat s.sp_keep.len():
+        s.su_rstart.push(0 - 1)
+        s.su_rlen.push(0)
+    end
     s.sum_ready = true
     mut rounds := 0
     mut changed := true
@@ -826,6 +872,7 @@ func su_infer(s &: Sema, a &: at.Ast):
             end
         end
     end
+    su_cache_reset(s)
     if changed:
         repeat s.sum_fresh.len() in z:
             s.sum_fresh.set(z, false)
