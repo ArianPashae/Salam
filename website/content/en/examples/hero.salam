@@ -5,9 +5,11 @@ func main:
     repeat 3:
         println "Hello"
     end
+
     names := ["Ali", "Reza", "Fatemeh", "Erfan"]
     each name in names:
         println name
     end
+
     println json.Marshal(names)
 end
