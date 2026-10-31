@@ -14,4 +14,4 @@
 
 package build_info
 
-pub mut VERSION := "0.6.0-aebefac0aa"
+pub mut VERSION := "0.6.0-6c16e0a6c5"
